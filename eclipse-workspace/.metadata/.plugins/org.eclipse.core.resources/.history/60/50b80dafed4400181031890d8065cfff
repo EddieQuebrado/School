@@ -1,0 +1,181 @@
+import java.awt.Color;
+import java.awt.GridLayout;
+import java.awt.Point;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Random;
+
+import javax.swing.JPanel;
+
+public class MineFieldPanel extends JPanel
+{
+	private static final long serialVersionUID = 1L;
+	private MineFieldButton[][] pegs;
+	private final double P_MINES = .25;
+	private RandomWalk walk;
+	private int MAX_MINES;
+	private int counter;
+	private Random rand;
+	private boolean isMine;
+	private boolean isPath;
+	private ArrayList<Point> mines;
+	private ArrayList<Point> path;
+	private int width;
+	private int height;
+	
+	public MineFieldPanel(ActionListener listener, int width, int height)
+	{
+		rand = new Random();
+		walk = new RandomWalk(width);
+		walk.createWalk();
+		isMine = true;
+		isPath = true;
+		this.width = width;
+		this.height = height;
+		
+		path = walk.getPath();
+		mines  = new ArrayList<Point>();
+				
+		MAX_MINES = (int)(width * height * P_MINES);
+		
+		setLayout(new GridLayout(width, height));
+		
+		pegs = new MineFieldButton[width][height];
+		
+		for(int i = 0; i < pegs.length; i++)
+		{
+			for(int j = 0; j < pegs[i].length; j++)
+			{
+				pegs[i][j] = new MineFieldButton(Color.white);
+				add(pegs[i][j]);
+				pegs[i][j].addActionListener(listener);
+				
+				if(j == 0 && i == width - 1)
+				{
+					pegs[i][j].setEnabled(true);
+				}
+				else
+				{
+					pegs[i][j].setEnabled(false);
+				}
+			}
+		}
+		
+//		for(int i = 0; i < path.size(); i++)
+//		{
+//			double x = path.get(i).getX();
+//			double y = path.get(i).getY();
+//			
+//			pegs[(int)y][(int)x].setBackground(Color.blue);
+//		}
+		
+		counter = 0;
+		
+		while(counter < MAX_MINES)
+		{
+			boolean pathCheck = false;
+			Point mine;
+			
+			do
+			{	
+				mine = new Point(rand.nextInt(width), rand.nextInt(width));
+				pathCheck = checkDuplicateCoordinates(mine, path, mines);
+			}
+			while(!pathCheck);
+			
+			mines.add(mine);
+			counter++;
+		}
+	}
+	
+
+	public boolean checkDuplicateCoordinates(Point mine, ArrayList<Point> path, ArrayList<Point> mines) 
+	{
+		boolean results = true;
+				
+		for(Point m: mines)
+		{
+			if((mine.getX() == m.getX()) && (mine.getY() == m.getY()))
+			{
+				System.out.println("X: " + mine.getX() + " Y: " + mine.getY());
+				results = false;
+				return results;
+			}
+		}
+
+		for(Point p: path)
+		{
+			if( (mine.getX() == p.getX() ) &&  (mine.getY() == p.getY() ))
+			{
+				results = false;
+				return results;
+			}
+			
+		}
+		return results;
+	}
+	
+	public void showMines()
+	{
+		for(int i = 0; i < MAX_MINES ; i++)
+		{
+			double x = mines.get(i).getX();
+			double y = mines.get(i).getY();
+			
+			pegs[(int)y][(int)x].setBackground(Color.BLACK);
+		}
+		
+		if(isMine == true)
+		{
+			for(Point m: mines)
+			{
+				double x = m.getX();
+				double y = m.getY();
+				pegs[(int)y][(int)x].setBackground(Color.BLACK);
+			}
+			isMine = false;
+		}
+		else
+		{
+			for(Point m: mines)
+			{
+				double x = m.getX();
+				double y = m.getY();
+				pegs[(int)y][(int)x].setBackground(Color.white);
+			}
+			isMine = true;
+		}
+	}
+	
+	public void showPath()
+	{
+		for(int i = 0; i < path.size(); i++)
+		{
+			double x = path.get(i).getX();
+			double y = path.get(i).getY();
+			
+			pegs[(int)y][(int)x].setBackground(Color.blue);
+		}
+		
+		if(isPath == true)
+		{
+			for(Point p: path)
+			{
+				double x = p.getX();
+				double y = p.getY();
+				pegs[(int)y][(int)x].setBackground(Color.blue);
+			}
+			isPath = false;
+		}
+		else
+		{
+			for(Point p: path)
+			{
+				double x = p.getX();
+				double y = p.getY();
+				pegs[(int)y][(int)x].setBackground(Color.white);
+			}
+			isPath = true;
+		}
+	}
+}

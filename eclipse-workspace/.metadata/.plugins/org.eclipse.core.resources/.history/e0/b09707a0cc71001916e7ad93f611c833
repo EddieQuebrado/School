@@ -1,0 +1,78 @@
+import java.util.LinkedList;
+
+public class Cache {
+	
+	private LinkedList<Object> cache;
+	private final int MAX_SIZE;
+	private int hit;
+	private int miss;
+	
+	public Cache(int MAX_SIZE){
+		this.MAX_SIZE= MAX_SIZE;
+		cache = new LinkedList<Object>();
+	}
+	
+	public Object addObject(Object key) {
+		Object retVal = null;
+        if (isFull()) {
+        	retVal = cache.removeLast();
+        }
+        cache.addFirst(key);
+        return retVal;
+	}
+	
+	public Object getObject(Object key) {
+		for(Object c: cache) {
+			if(c.equals(key)) {
+				removeObject(c);
+				cache.addFirst(c);
+				increaseHits();
+				return c;
+			}
+		}
+		increaseMiss();
+		return null;
+	}
+	
+	public void removeObject(Object key) {
+		cache.remove(key);
+	}
+	
+	public void increaseHits() {
+		hit++;
+	}
+	
+	public void increaseMiss() {
+		miss++;
+	}
+	
+	public int getHits() {
+		return hit;
+	}
+	
+	public int getMiss() {
+		return miss;
+	}
+	
+	public int getReferences() {
+		return hit + miss;
+	}
+	
+	public double getHitRatio() {
+		double ratio = ((double) getHits()) / getReferences();
+        return ratio;
+	}
+	
+	public void clearCache() {
+		cache.clear();
+	}
+	
+	public long getCapacity() {	
+		return cache.size();
+	}
+	
+	public boolean isFull() {
+		return (cache.size() == MAX_SIZE);
+	}
+
+}

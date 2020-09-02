@@ -1,0 +1,43 @@
+import java.awt.Color;
+import java.awt.Dimension;
+
+import javax.swing.JButton;
+
+public class LitePegButton extends JButton
+{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private int colorIndex;
+	
+	private final Color[] COLORS = {Color.RED,    Color.GREEN,  Color.BLUE };
+	
+	public LitePegButton(Color c)
+	{		
+		colorIndex = 0;		
+		setPreferredSize(new Dimension(25,25));
+		setBackground(c);
+	}
+	
+	public Color getColor()
+	{
+		return COLORS[colorIndex];
+	}
+	
+	public void resetColor()
+	{
+		setBackground(Color.BLACK);
+		colorIndex = 0;
+	}
+	
+	public void changeColor()
+	{
+		setBackground(getColor());
+		colorIndex++;
+		if(colorIndex == 3) 
+		{
+			colorIndex = 0;
+		}
+	}
+}

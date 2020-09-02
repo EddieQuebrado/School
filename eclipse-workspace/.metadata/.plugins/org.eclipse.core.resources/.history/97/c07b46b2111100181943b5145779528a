@@ -1,0 +1,21 @@
+import java.util.Scanner;
+
+public class MaxInteger 
+{
+	
+	public static void main(String[] args)
+	{
+		Scanner scan = new Scanner(System.in);
+		
+		int input = 1; // starting condition
+		
+		while(input >= 1) // ending condition
+		{
+			System.out.println("Enter an Integer: ");
+			input = Integer.parseInt(scan.nextLine());
+		}
+		
+		scan.close();
+	}
+
+}

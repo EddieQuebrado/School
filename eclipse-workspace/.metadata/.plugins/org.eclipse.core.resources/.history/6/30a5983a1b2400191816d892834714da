@@ -1,0 +1,145 @@
+import java.util.StringTokenizer;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+
+public class Test {
+	
+	private BufferedReader input;
+	private StringTokenizer tokenizer;
+	private Cache firstCache;
+	private Cache secondCache;
+	private String cacheOption;
+	private static final String DELIMITERS = " \t";
+	private File file;
+	private boolean dualCache;
+	
+	public static void main(String[] args) throws IOException {
+		if (args.length < 3 || args.length > 4) {
+			printUsage();
+			System.exit(1);
+		}
+		try {
+			new Test(args); //create this with args
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+	}
+	
+	public Test(String[] args) { 
+		cacheOption = args[0];
+		String line = null;
+	    String token;
+	    input = null;
+        try { 		
+    		if(cacheOption.equals("1")) {
+    			dualCache = false;
+        		file = new File(args[2]);
+        		if(file.isFile()) {
+        			firstCache = new Cache(Integer.parseInt(args[1]));
+            	    input = new BufferedReader(new FileReader(file));
+            	    line = input.readLine();
+            	    while (line != null) {
+            	    	tokenizer = new StringTokenizer(line, DELIMITERS);        	       
+            	        while (tokenizer.hasMoreTokens()) {
+            	        	token = tokenizer.nextToken();
+            	        	if(firstCache.getObject(token) == null) {
+            	        		firstCache.addObject(token);
+            	        	}
+            	        }
+            	        line = input.readLine();
+            	    }
+            	    System.out.println(toString());
+            	    input.close();
+        		} else {
+        			System.out.println("File " + file + " does not exist");
+        			printUsage();
+        		}
+			} else if (cacheOption.equals("2")) {
+				dualCache = true;
+        		file = new File(args[3]);
+        		if(file.isFile()) {
+        			firstCache = new Cache(Integer.parseInt(args[1]));
+            		secondCache = new Cache(Integer.parseInt(args[2]));
+            	    input = new BufferedReader(new FileReader(file)); 	    
+            	    line = input.readLine();
+            	    while (line != null) {
+            	    	tokenizer = new StringTokenizer(line, DELIMITERS);        	       
+            	        while (tokenizer.hasMoreTokens()) {
+            	        	token = tokenizer.nextToken();
+            	        	if(firstCache.getObject(token) != null) {
+            	        		firstCache.removeObject(token);
+            	        		firstCache.addObject(token);
+            	        		secondCache.removeObject(token);
+            	        		secondCache.addObject(token);
+            	        	} else {
+            	        		if(secondCache.getObject(token) == null) { // If object miss
+            	        			secondCache.addObject(token);
+            	        			firstCache.addObject(token);
+            	        		} else {
+            	        			secondCache.removeObject(token);
+            	        			secondCache.addObject(token);
+            	        			firstCache.addObject(token);
+            	        		}
+            	        	}
+            	        }
+            	        line = input.readLine();
+            	    }
+            	    System.out.println(toString());
+            	    input.close();
+        		} else {
+        			System.out.println("File " + file + " does not exist");
+        			printUsage();
+        		}
+			}
+        } catch(Exception e) {
+        	printUsage();
+        	e.printStackTrace();
+        }
+	}
+	
+	/** Print instructions for running Test from the command line. */
+	private static void printUsage() {
+		System.err.println("java Test 1 <cache size> <input textfile name>");
+		System.err.println("java Test 2 <1st-level cache size> <2nd-level cache size> <input textfile name>");
+		System.err.println("Suggestion: Two-level Cache requires the 2nd-level cache capacity to be larger than 1st-level.");
+		System.err.println("1 : set program to run with a single level cache");
+		System.err.println("2 : set program to run with a dual level cache");
+	}
+	
+	public String toString() {
+		String str = "";
+		if(dualCache) {
+			str += "\nFirst level cache with " + firstCache.getCapacity() + " entries has been created\n";
+			str += "Second level cache with " + secondCache.getCapacity() + " entries has been created\n";
+			str += "--------------------------------------------------------\n";
+			str += "The number of global references: " + firstCache.getReferences() + "\n";
+			str += "The number of global cache hits: " + (firstCache.getHits() + secondCache.getHits())  + "\n";
+			str += "The global hit-ratio: " + getGlobalRatio(firstCache, secondCache) + "\n\n";
+			str += "The number of 1st-level references: " + firstCache.getReferences() + "\n";
+			str += "The number of 1st-level cache hits: " + firstCache.getHits() + "\n";
+			str += "The 1st-level cache hit ratio: " + firstCache.getHitRatio() + "\n\n";
+			str += "The number of 2nd-level references: " + secondCache.getReferences() + "\n";
+			str += "The number of 2nd-level cache hits: " + secondCache.getHits() + "\n";
+			str += "The 2nd-level cache hit ratio: " + secondCache.getHitRatio() + "\n\n";
+		} else {
+			str += "\nFirst level cache with " + firstCache.getCapacity() + " entries has been created\n";
+			str += "--------------------------------------------------------\n";
+			str += "The number of global references: " + firstCache.getReferences() + "\n";
+			str += "The number of global cache hits: " + firstCache.getHits()  + "\n";
+			str += "The global hit-ratio " + firstCache.getHitRatio() + "\n\n";
+			str += "The number of 1st-level references: " + firstCache.getReferences() + "\n";
+			str += "The number of 1st-level cache hits: " + firstCache.getHits() + "\n";
+			str += "The 1st-level cache hit ratio: " + firstCache.getHitRatio() + "\n\n";
+		}
+		return str;
+	}
+	
+	public double getGlobalRatio(Cache c1, Cache c2) {
+		double ratio = ((double) c1.getHits() + c2.getHits()) / c1.getReferences();
+        return ratio;
+	}
+}

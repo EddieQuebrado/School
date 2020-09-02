@@ -1,0 +1,404 @@
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.ArrayList;
+
+public class BTree {
+	// Instance Variables
+	private BTreeNode root; // Root node of the BTree (write the root at the end)
+
+	private int degree; // Metadata
+	private int substringLength; // Metadata
+	private int locationOfRoot; // Metadata
+
+	// size of the node that's calculated based on the degree provied
+	private int nodeSize;
+
+	// next byte index in the file
+	int nextByteIndex;
+
+	private static final String filePath = "btree.bin"; // File to store the BTree
+
+	private RandomAccessFile readFile; // To read the file
+	private RandomAccessFile writeFile; // To write to the file
+	
+	private boolean useCache; // To check whether cache is gonna be used
+	Cache cache;
+
+	public BTree(int degree, int substringLength, boolean useCache, int cacheSize, boolean bin) {
+		this.useCache = useCache;
+		if(useCache) {
+			cache = new Cache(cacheSize);
+		}
+		this.degree = degree;
+		this.substringLength = substringLength;
+		nodeSize = (20 + (12 * ((2 * degree) - 1)) + (4 * (2 * degree)));
+
+		nextByteIndex = 12;
+
+		root = new BTreeNode(nextByteIndex, degree, -1);
+		locationOfRoot = 12;
+
+		// Initialize the writeFile
+		try {
+			writeFile = new RandomAccessFile(filePath, "rw");
+		} catch (IOException e) {
+			System.out.println("Couldn't initialize the writeFile.");
+		}
+
+		// Initialize the readFile
+		try {
+			readFile = new RandomAccessFile(filePath, "r");
+		} catch (IOException e) {
+			System.out.println("Couldn't initialize the readFile.");
+		}
+
+		writeBTreeMetadata();
+	}
+
+	/**
+	 * Returns the location of the root.
+	 * 
+	 * @return : Returns an integer value that represents the location of root in
+	 *         the binary file.
+	 */
+	public int getLocationOfRoot() {
+		return locationOfRoot;
+	}
+
+	/**
+	 * Returns the size of the node.
+	 * 
+	 * @return : Returns an integer value that's the size of the node in bytes.
+	 */
+	public int getNodeSize() {
+		return nodeSize;
+	}
+
+	/**
+	 * Returns the next available byte index in the file.
+	 * 
+	 * @return : Returns an integer value.
+	 */
+	public int getIndex() {
+		nextByteIndex = nextByteIndex + nodeSize;
+		return nextByteIndex;
+	}
+
+	/**
+	 * Writes the metadata of the BTree to the file.
+	 */
+	public void writeBTreeMetadata() {
+		try {
+			writeFile.seek(0);
+			writeFile.writeInt(degree);
+			writeFile.writeInt(substringLength);
+			writeFile.writeInt(locationOfRoot);
+		} catch (IOException e) {
+			System.out.println("Couln't write the btree metadata.");
+		}
+	}
+
+	/**
+	 * Reads the metadata of the BTree from the file and stores them in an ArrayList
+	 * and returns it.
+	 * 
+	 * @return : Returns an ArrayList of BTree metadata. The first element is the
+	 *         degree of the BTree, the second element is the substring length, and
+	 *         the third element is the locationOfRoot.
+	 */
+	public ArrayList<Integer> readBTreeMetadata() {
+		ArrayList<Integer> arrayList = new ArrayList<Integer>();
+		try {
+			readFile.seek(0);
+			arrayList.add(readFile.readInt());
+			arrayList.add(readFile.readInt());
+			arrayList.add(readFile.readInt());
+			return arrayList;
+		} catch (IOException e) {
+			System.out.println("Couldn't read the btree metadata.");
+		}
+		return arrayList;
+
+	}
+
+	/**
+	 * Writes the BTree node starting at the specified position.
+	 * 
+	 * @param node     : The BTreeNode that's to be written
+	 * @param position : The position to start writing to in the file.
+	 */
+	public void writeBTreeNode(BTreeNode node, int position) {
+		try {
+			if(useCache) {
+				cache.addObject(node);
+			}
+			writeFile.seek(position);
+			writeFile.writeInt(node.getOffset());
+			// writeFile.writeInt(node.getDegree());
+			writeFile.writeInt(node.getIsLeaf());
+			writeFile.writeInt(node.getParent());
+			writeFile.writeInt(node.getNumKeys());
+
+			int nextPosition = position + 16; // 16 for 4 * 4 metadata
+			writeFile.seek(nextPosition);
+
+			for (int i = 0; i < node.getNumKeys(); i++) {
+				TreeObject ithKey = node.getKey(i);
+				writeFile.writeLong(ithKey.getKey());
+				writeFile.writeInt(ithKey.getFrequency());
+			}
+
+			nextPosition = nextPosition + (12 * ((2 * degree) - 1)); // nextPosition + (8+4) * maxInsert
+			writeFile.seek(nextPosition);
+
+			if (node.getIsLeaf() != 1) {
+				for (int i = 0; i < node.getNumKeys() + 1; i++) {
+					writeFile.writeInt(node.getChildAtIndex(i));
+				}
+			}
+		} catch (IOException e) {
+			System.out.println("Couldn't write the node.");
+		}
+	}
+
+	/**
+	 * Reads a node from the specified location and returns it.
+	 * 
+	 * @param position : The position from where the node is to be read.
+	 * @return : Returns the BTreeNode at that position.
+	 */
+	public BTreeNode readBTreeNode(int position) {
+		BTreeNode tempNode = null;
+		try {
+			readFile.seek(position);
+			// Read the metadata
+			int nodeOffset = readFile.readInt();
+			// int nodeDegree = readFile.readInt();
+			int isLeaf = readFile.readInt();
+			int parentOffset = readFile.readInt();
+			int numKeys = readFile.readInt();
+
+			// Create a temporary node, and initialize it with the metadata read
+			tempNode = new BTreeNode(nodeOffset, degree, parentOffset);
+			tempNode.setIsLeaf(isLeaf);
+
+			// The next position would be at the initial position + 20
+			int nextPosition = position + 16; // 16 for 4 * 4 metadata
+			readFile.seek(nextPosition);
+
+			for (int i = 0; i < numKeys; i++) {
+				long dna = readFile.readLong();
+				int frequency = readFile.readInt();
+
+				TreeObject treeObject = new TreeObject(dna, substringLength);
+				treeObject.setFrequency(frequency);
+				tempNode.insertKey(treeObject);
+			}
+
+			// Go to the start of where we started writing child pointers
+			nextPosition = nextPosition + (12 * ((2 * degree) - 1)); // nextPosition + (8+4) * maxInsert
+			readFile.seek(nextPosition);
+
+			// Checks whether it's leaf node or not as leaf nodes don't have child pointers
+			if (isLeaf != 1) {
+				for (int j = 0; j < numKeys + 1; j++) { // Child pointers are one more than numKeys
+					tempNode.setChildAtIndex(j, readFile.readInt()); /// insert?
+				}
+			}
+
+			if (tempNode.getParent() == -1) {
+				root = tempNode;
+			}
+			return tempNode;
+		} catch (IOException e) {
+			System.out.println("Couldn't read the node.");
+			e.printStackTrace();
+		}
+		return tempNode;
+	}
+
+	public void bTreeInsert(TreeObject k) {
+		// assign root to r
+		BTreeNode r = root;
+		if(useCache) {
+			for(int i = 0; i < cache.getSize(); i++) {
+				
+			}
+		} else {
+			
+		}
+
+		// check if r contains the key k
+		if (r.getIndexOfKey(k) >= 0) {
+			// if it does, then increase it's frequency
+			r.getKey(r.getIndexOfKey(k)).increaseFrequency();
+			root = r;
+			writeBTreeNode(r, r.getOffset());
+		} else {
+			// else if it doesn't contains the key, check if it's full
+			if (r.isFull()) {
+				// if it's full then allocate a new node
+				BTreeNode newRoot = new BTreeNode(getIndex(), degree, r.getParent());
+
+				// get the middle value from r which is going to be pushed to newNode.
+				TreeObject temp = r.getKey(degree - 1);
+
+				// get the index where the middle value was inserted in the newNode.
+				newRoot.insertKey(temp);
+
+				// remove the middle value from r
+				r.removeKey(degree - 1);
+
+				// newNode is not a leaf anymore as it's going to be the new root
+				newRoot.setIsLeaf(0);
+
+				// insert r as the 0th child of the newNode as the keys in r are less than the
+				// middle value
+				newRoot.insertChildOffset(0, r.getOffset());
+
+				// set the new parent of r as the newNode
+				r.setParent(newRoot.getOffset());
+
+				// set the new root to newNode
+				root = newRoot;
+
+				locationOfRoot = newRoot.getOffset();
+
+				writeBTreeMetadata();
+
+				// split r with the newNode being set as the 1st child of the new root
+				splitChild(r, newRoot, 1);
+
+				// after r is split, call the InsertNonFull method as we haven't inserted k
+				// yet.
+				bTreeInsertNonFull(newRoot, k);
+
+				// if r is not full, then we can go straight to calling the nonfull insert
+				// method.
+			} else {
+				bTreeInsertNonFull(r, k);
+			}
+		}
+
+	}
+
+	public void splitChild(BTreeNode toSplit, BTreeNode theParent, int childIndex) {
+		// allocate a newNode
+		BTreeNode newNode = new BTreeNode(getIndex(), degree, theParent.getOffset()); // toSplit.getParent()
+
+		// if toSplit is a leaf then the newNode would also be a leaf as they are
+		// siblings and vice-versa.
+		newNode.setIsLeaf(toSplit.getIsLeaf());
+
+		// get the number of keys in toSplit
+		int numKeysInToSplit = toSplit.getNumKeys();
+
+		// insert the 2nd half of the keys from the toSplit to the newNode
+		for (int i = numKeysInToSplit / 2; i < numKeysInToSplit; i++) {
+			newNode.insertKey(toSplit.getKey(i));
+		}
+
+		// remove the 2nd half of the keys from the toSplit
+		for (int i = numKeysInToSplit / 2; i < numKeysInToSplit; i++) {
+			toSplit.setKeyToNull(i); // .removeKey(i);
+		}
+
+		// insert the newNode's offset at the specified child index in the children
+		// array of theParent
+		theParent.insertChildOffset(childIndex, newNode.getOffset());
+
+		// check if the newNode is not a leaf
+		if (newNode.getIsLeaf() == 0) {
+			// if it's not a leaf, then assign the appropriate child pointers to the newNode
+			for (int i = degree; i < 2 * degree; i++) {
+				newNode.insertChildOffset(i - degree, toSplit.getChildAtIndex(i));
+
+				// Get the ithChild of the toSplit
+				BTreeNode ithChild = readBTreeNode(toSplit.getChildAtIndex(i));
+
+				// don't forget to set the parent pointer of the ithChild to the newNode
+				ithChild.setParent(newNode.getOffset());
+
+				writeBTreeNode(ithChild, ithChild.getOffset());
+			}
+
+			// reset half of the child pointers of the toSplit back to -1.
+			for (int i = degree; i < 2 * degree; i++) {
+				toSplit.setChildAtIndex(i, -1);
+			}
+		}
+
+		writeBTreeNode(newNode, newNode.getOffset());
+		writeBTreeNode(toSplit, toSplit.getOffset());
+		writeBTreeNode(theParent, theParent.getOffset());
+	}
+
+	public void bTreeInsertNonFull(BTreeNode current, TreeObject k) {
+
+		int numKeysInCurrent = current.getNumKeys();
+
+		// check if it's a leaf
+		if (current.getIsLeaf() == 1) {
+			// if it's a leaf then insert it there
+			current.insertKey(k);
+			writeBTreeNode(current, current.getOffset());
+		} else {
+
+			// check if the current contains the key k
+			if (current.getIndexOfKey(k) >= 0) {
+				// if it does, then increase it's frequency
+				current.getKey(current.getIndexOfKey(k)).increaseFrequency();
+				writeBTreeNode(current, current.getOffset());
+			} else {
+				// else if it doesn't contains the key k and it's a not a leaf, find the
+				// appropriate child node to go to
+				while (numKeysInCurrent > 0 && k.getKey() < current.getKey(numKeysInCurrent - 1).getKey()) {
+					numKeysInCurrent--;
+				}
+
+				// get the offSet of the child node from the array of children in the current
+				// node
+				int offsetOfChild = current.getListOfChildren().get(numKeysInCurrent);
+
+				// get the ithChild of the current node
+				BTreeNode ithChild = readBTreeNode(offsetOfChild);
+
+				if (ithChild.getIndexOfKey(k) >= 0) {
+					// if it does, then increase it's frequency
+					ithChild.getKey(ithChild.getIndexOfKey(k)).increaseFrequency();
+					writeBTreeNode(ithChild, ithChild.getOffset());
+				} else {
+					// else if it's not in the ithChild, check if it's full
+					if (ithChild.isFull()) {
+						// if it's full then get it's parent to which we want to push the middle value
+						int parentOffset = ithChild.getParent();
+
+						// get the actual parent node
+						BTreeNode parentNode = readBTreeNode(parentOffset);
+
+						// get the middle value from ithChild which is full
+						TreeObject medianValue = ithChild.getKey(degree - 1);
+
+						// insert the middle value from the ithChild to it's parent
+						int returnValue = parentNode.insertKey(medianValue);
+
+						// remove the middle value from the ithChild
+						ithChild.removeKey(degree - 1);
+
+						// split the ithChild and add the newly created note to one index forward of
+						// where the middle value was inserted in the parent
+						splitChild(ithChild, parentNode, returnValue + 1);
+
+						// after splitting the ithChild, check if the k is greater than the middle value
+						// inserted in the parent node, if it is greater then get the offset of the next
+						// child of the parentNode.
+						if (k.getKey() > parentNode.getKey(returnValue).getKey()) {
+							offsetOfChild = parentNode.getChildAtIndex(returnValue + 1);
+						}
+					}
+					bTreeInsertNonFull(readBTreeNode(offsetOfChild), k);
+				}
+			}
+		}
+	}
+}

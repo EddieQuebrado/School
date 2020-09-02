@@ -1,0 +1,50 @@
+import java.awt.Color;
+import java.awt.Dimension;
+
+import javax.swing.JButton;
+
+public class MineFieldButton extends JButton
+{
+	private static final long serialVersionUID = 1L;
+	private int colorIndex;
+	private boolean isMine;
+	private Color color;
+	private int numNearbyMines;
+	private boolean clicked;
+	
+	public static final Color[] COLORS = {
+			Color.WHITE,
+			new Color(0,255,255), 
+			new Color(4,156,216), 
+			new Color(251,208,0),
+			new Color(229,37,33), 
+			new Color(67,176,71),
+			Color.GREEN,
+			Color.CYAN,};
+	
+	public MineFieldButton(Color c)
+	{		
+		setPreferredSize(new Dimension(25,25));
+		setBackground(c);
+	}
+	
+	public boolean MineFieldMine()
+	{
+		colorIndex = 1;
+		setPreferredSize(new Dimension(25,25));
+		setBackground(getColor());
+		
+		return true;
+	}
+	
+	public Color getColor()
+	{
+		return COLORS[colorIndex];
+	}
+	
+	public void resetField()
+	{
+		colorIndex = 0;
+		setBackground(getColor());
+	}
+}

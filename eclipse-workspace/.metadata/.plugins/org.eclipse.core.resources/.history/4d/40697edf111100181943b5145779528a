@@ -1,0 +1,28 @@
+import java.util.Scanner;
+
+public class MaxInteger 
+{
+	
+	public static void main(String[] args)
+	{
+		Scanner scan = new Scanner(System.in);
+		
+		int input = 1; // starting condition
+		int max = input;
+		
+		while(input >= 1) // ending condition
+		{
+			System.out.println("Enter an Integer: ");
+			input = Integer.parseInt(scan.nextLine());
+			
+			if(input > max)
+			{
+				max = input;
+			}
+		}
+		System.out.println("Your largest integer was " + max);
+		
+		scan.close();
+	}
+
+}

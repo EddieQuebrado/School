@@ -1,0 +1,545 @@
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.sql.CallableStatement;
+
+import java.sql.ResultSet;
+
+public class project {
+	
+	private int itemsCreated;
+	private int purchCreated;
+	private int shipmCreated;
+	
+	//////////////////////////////////////////////////////////
+	////------------------------------------------------------
+	////  XXX: SQLManager
+	////
+	////------------------------------------------------------
+	//////////////////////////////////////////////////////////
+	
+	public project(Connection conn, String[] args) {
+		try {
+			String selectMethod = args[0]; //Selects method to use
+			itemsCreated = 0; //Amount of times CreateItem was called
+			purchCreated = 0; //Amount of times CreatePurchase
+			shipmCreated = 0; //Amount of times CreateShipment
+			if(selectMethod.equals("/?")) {
+				printUsage();
+			} else if(selectMethod.equals("CreateItem")) {
+				// Call CreateItem procedure
+				String itemCode = args[1];
+				String itemDescription = args[2];
+				float price = Float.parseFloat(args[3]);
+				CreateItem(conn, itemCode, itemDescription, price);
+			} else if(selectMethod.equals("CreatePurchase")) {
+				// Call CreatePurchase procedure
+				String itemCode = args[1];
+				int purchaseQuantity = Integer.parseInt(args[2]);
+				CreatePurchase(conn, itemCode, purchaseQuantity);
+			} else if(selectMethod.equals("CreateShipment")) {
+				// Call CreateShipment procedure
+				String itemCode = args[1];
+				int shipmentQuantity = Integer.parseInt(args[2]);
+				String sDate = args[3];
+				java.sql.Date shipmentDate = java.sql.Date.valueOf(sDate);
+				CreateShipment(conn, itemCode, shipmentQuantity, shipmentDate);
+			} else if(selectMethod.equals("GetItems")) {
+				// Call GetItems procedure
+				String itemCode = args[1];
+				GetItems(conn, itemCode);
+			} else if(selectMethod.equals("GetShipments")) {
+				// Call GetShipments procedure
+				String itemCode = args[1];
+				GetShipments(conn, itemCode);
+			} else if(selectMethod.equals("GetPurchases")) {
+				// Call GetPurchases procedure
+				String itemCode = args[1];
+				GetPurchases(conn, itemCode);
+			} else if(selectMethod.equals("ItemsAvailable")) {
+				// Call ItemsAvailable procedure
+				String itemCode = args[1];
+				ItemsAvailable(conn, itemCode);
+			} else if(selectMethod.equals("UpdateItem")) {
+				// Call UpdateItem procedure
+				float price = Float.parseFloat(args[2]);
+				String itemCode = args[1];
+				UpdateItem(conn, itemCode, price);
+			} else if(selectMethod.equals("DeleteItem")) {
+				// Call DeleteItem procedure
+				String itemCode = args[1];
+				DeleteItem(conn, itemCode);
+			} else if(selectMethod.equals("DeleteShipment")) {
+				// Call DeleteShipment procedure
+				String itemCode = args[1];
+				DeleteShipment(conn, itemCode);
+			} else if(selectMethod.equals("DeletePurchase")) {
+				// Call DeletePurchase procedure
+				String itemCode = args[1];
+				DeletePurchase(conn, itemCode);
+			} else {
+				System.out.println("FIRST ARGUMENT IS NOT A VALID ARGUMENT\n"
+						+ "OPENING COMMAND LINE USAGE\n"
+						+ "-----------------------------------------------------\n");
+				printUsage();
+			}
+		} catch(Exception e) {
+			printUsage();
+		}
+	}
+	
+	/**
+	 * 
+	 * @param args
+	 * @throws IOException
+	 */
+	public static void main(String[] args) throws IOException {
+		if (args.length < 1 || args.length > 4) {
+			printUsage();
+			System.exit(1);
+		}
+		try {
+			Class.forName("com.mysql.jdbc.Driver").newInstance();
+			System.out.println();
+			System.out.println("JDBC driver loaded");
+			System.out.println();
+			Connection conn = makeConnection();
+			new project(conn, args);
+			conn.close();
+			System.out.println();
+			System.out.println("Database [test db] connection closed");
+			System.out.println();
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.exit(1);
+		}
+	}
+
+	//////////////////////////////////////////////////////////
+	////------------------------------------------------------
+	////  XXX: SQL Create Methods
+	////		- CreateItem
+	////		- CreatePurchase
+	////		- CreateShipment
+	////------------------------------------------------------
+	//////////////////////////////////////////////////////////
+	
+	/**
+	 * Creates a new item and stores it within our SQLDatabase
+	 * @param Connection conn
+	 * @param int ItemCode
+	 * @param String ItemDescription
+	 * @param double Price
+	 */
+	public static void CreateItem(Connection conn, String ItemCode, String ItemDescription, float Price) {
+		try {
+			CallableStatement cs = conn.prepareCall("{call CreateItem(?, ?, ?)}");
+			cs.setString(1, ItemCode);
+			cs.setString(2, ItemDescription);
+			cs.setFloat(3, Price);
+			cs.execute();
+			System.out.println("A new Item was created.");
+		} catch (SQLException ex) {
+			// handle any errors
+			System.err.println("SQLException: " + ex.getMessage());
+			System.err.println("SQLState: " + ex.getSQLState());
+			System.err.println("VendorError: " + ex.getErrorCode());
+		}
+	}
+	
+	/**
+	 * Creates a new purchase and stores it within our SQLDatabase
+	 * @param Connection conn
+	 * @param int itemCode
+	 * @param int purchaseQuantity
+	 */
+	public static void CreatePurchase(Connection conn, String itemCode, int purchaseQuantity) {
+		try {
+			CallableStatement cs = conn.prepareCall("{call CreatePurchase(?, ?)}");
+			cs.setString(1, itemCode);
+			cs.setInt(2, purchaseQuantity);
+			cs.execute();
+			System.out.println("A new purchase was created.");
+		} catch (SQLException ex) {
+			// handle any errors
+			System.err.println("SQLException: " + ex.getMessage());
+			System.err.println("SQLState: " + ex.getSQLState());
+			System.err.println("VendorError: " + ex.getErrorCode());
+		}
+	}
+	
+	/**
+	 * Creates a new shipment and stores it within our SQLDatabase
+	 * A shipment can't be created on the same day.
+	 * @param conn
+	 * @param itemCode
+	 * @param shipmentQuantity
+	 * @param shipmentDate
+	 */
+	public void CreateShipment(Connection conn, String itemCode, int shipmentQuantity, Date shipmentDate) {
+		try {
+			System.out.println(itemCode);
+			CallableStatement cs = conn.prepareCall("{call CreateShipment(?, ?, ?)}");
+			cs.setString(1, itemCode);
+			cs.setInt(2, shipmentQuantity);
+			cs.setDate(3, shipmentDate);
+			cs.execute();
+		} catch (SQLException ex) {
+			// handle any errors
+			System.err.println("SQLException: " + ex.getMessage());
+			System.err.println("SQLState: " + ex.getSQLState());
+			System.err.println("VendorError: " + ex.getErrorCode());
+			System.out.println("Cause: " + ex.getCause());
+		}
+	}
+	
+	//////////////////////////////////////////////////////////
+	////------------------------------------------------------
+	////  XXX: SQL Get Methods
+	////		- GetItems
+	////		- GetPurchases
+	////		- GetShipments
+	////------------------------------------------------------
+	//////////////////////////////////////////////////////////
+	
+	/**
+	 * 
+	 * @param conn
+	 * @param itemCode
+	 * @return ResultSet
+	 */
+	public ResultSet GetItems(Connection conn, String itemCode) {
+		Statement stmt = null;
+		ResultSet rs = null;
+		try {
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery("SELECT * FROM cs1.Class");
+			return rs; // return statement was needed
+			// TODO: Decide what to do with result set.
+			
+//			Now do something with the ResultSet ....
+//			boolean rowsLeft = true;
+//			rs.first();
+//			System.out.println("Select * FROM Class");
+//			while (rowsLeft) {
+//				System.out.println(rs.getInt(1) + ":" + rs.getString(2) + ":" + rs.getString(3) + ":" + rs.getString(4) + ":" + rs.getString(5));
+//				rowsLeft = rs.next();
+//			}
+		} catch (SQLException ex) {
+			System.err.println("SQLException: " + ex.getMessage());
+			System.err.println("SQLState: " + ex.getSQLState());
+			System.err.println("VendorError: " + ex.getErrorCode());
+		} finally {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException sqlEx) {
+				}
+				rs = null;
+			}
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException sqlEx) {
+				}
+				stmt = null;
+			}
+		}
+		return rs;
+	}
+	
+	/**
+	 * 
+	 * @param Connection conn
+	 * @param int ItemCode
+	 * @return ResultSet
+	 */
+	public ResultSet GetShipments(Connection conn, String itemCode) {
+		//allow % to be used for getting all shipments
+		Statement stmt = null;
+		ResultSet rs = null;
+		try {
+			stmt = conn.createStatement();
+		} catch (SQLException ex) {
+			System.err.println("SQLException: " + ex.getMessage());
+			System.err.println("SQLState: " + ex.getSQLState());
+			System.err.println("VendorError: " + ex.getErrorCode());
+		} finally {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException sqlEx) {
+				}
+				rs = null;
+			}
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException sqlEx) {
+				}
+				stmt = null;
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * 
+	 * @param Connection conn
+	 * @param int ItemCode
+	 * @return ResultSet
+	 */
+	public ResultSet GetPurchases(Connection conn, String itemCode) {
+		//allow % to be used for getting all purchases made
+		Statement stmt = null;
+		ResultSet rs = null;
+		try {
+			stmt = conn.createStatement();
+		} catch (SQLException ex) {
+			System.err.println("SQLException: " + ex.getMessage());
+			System.err.println("SQLState: " + ex.getSQLState());
+			System.err.println("VendorError: " + ex.getErrorCode());
+		} finally {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException sqlEx) {
+				}
+				rs = null;
+			}
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException sqlEx) {
+				}
+				stmt = null;
+			}
+		}
+		return null;
+	}
+	
+	//////////////////////////////////////////////////////////
+	////------------------------------------------------------
+	////  XXX: SQL Alter ItemTable Methods
+	////		- ItemsAvailable
+	////		- UpdateItem
+	////
+	////------------------------------------------------------
+	//////////////////////////////////////////////////////////
+	
+	/**
+	 * 
+	 * @param Connection conn
+	 * @param int ItemCode
+	 * @return Result set
+	 */
+	public ResultSet ItemsAvailable(Connection conn, String itemCode) {
+		//allow % to be used for getting all items available
+		if(itemCode.equals("%")) {
+			// print all items available
+			Statement stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery("SELECT * FROM fp.Item;");
+			boolean rowsLeft = true;
+			rs.first();
+			System.out.println("Selecting all Items");
+			while (rowsLeft) {
+				System.out.println(rs.getInt(1) + " : " + rs.getString(2) + " : " + rs.getString(3) + " : " + rs.getFloat(4));
+				rowsLeft = rs.next();
+			}
+		}
+		try {
+			CallableStatement
+		} catch (SQLException ex) {
+			System.err.println("SQLException: " + ex.getMessage());
+			System.err.println("SQLState: " + ex.getSQLState());
+			System.err.println("VendorError: " + ex.getErrorCode());
+		}
+		return null;
+	}
+	
+	/**
+	 * 
+	 * @param Connection conn
+	 * @param int ItemCode
+	 * @param double price
+	 * @return int
+	 */
+	public void UpdateItem(Connection conn, String itemCode, float price) {
+		try {
+			CallableStatement cs = conn.prepareCall("{call UpdateItem(?, ?)}");
+			cs.setString(1, itemCode);
+			cs.setFloat(2, price);
+			cs.execute();
+			System.out.println(itemCode + " price was updated.");
+		} catch (SQLException ex) {
+			System.err.println("SQLException: " + ex.getMessage());
+			System.err.println("SQLState: " + ex.getSQLState());
+			System.err.println("VendorError: " + ex.getErrorCode());
+		}
+	}
+	
+	//////////////////////////////////////////////////////////
+	////------------------------------------------------------
+	////  XXX: SQL Delete Methods
+	////		- DeleteItem
+	////		- DeleteShipment
+	////		- DeletePurchase
+	////------------------------------------------------------
+	//////////////////////////////////////////////////////////
+	
+	/**
+	 * 
+	 * @param Connection conn
+	 * @param int ItemCode
+	 * @return int
+	 */
+	public void DeleteItem(Connection conn, String itemCode) {
+		try {
+			CallableStatement cs = conn.prepareCall("{call DeleteItem(?)}");
+			cs.setString(1, itemCode);
+			cs.execute();
+		} catch (SQLException ex) {
+			System.err.println("SQLException: " + ex.getMessage());
+			System.err.println("SQLState: " + ex.getSQLState());
+			System.err.println("VendorError: " + ex.getErrorCode());
+		}
+	}
+	
+	/**
+	 * 
+	 * @param Connection conn
+	 * @param int ItemCode
+	 * @return int
+	 */
+	public void DeleteShipment(Connection conn, String itemCode) {
+		try {
+			CallableStatement cs = conn.prepareCall("{call DeleteShipment(?)}");
+			cs.setString(1, itemCode);
+			cs.execute();
+			System.out.println("Shipment was deleted");
+		} catch (SQLException ex) {
+			System.err.println("SQLException: " + ex.getMessage());
+			System.err.println("SQLState: " + ex.getSQLState());
+			System.err.println("VendorError: " + ex.getErrorCode());
+		}
+	}
+	
+	/**
+	 * 
+	 * @param Connection conn
+	 * @param int ItemCode
+	 * @return int
+	 */
+	public void DeletePurchase(Connection conn, String itemCode) {
+		try {
+			CallableStatement cs = conn.prepareCall("{call DeletePurchase(?)}");
+			cs.setString(1, itemCode);
+			cs.execute();
+			System.out.println("Purchase was deleted");
+		} catch (SQLException ex) {
+			System.err.println("SQLException: " + ex.getMessage());
+			System.err.println("SQLState: " + ex.getSQLState());
+			System.err.println("VendorError: " + ex.getErrorCode());
+		}
+		
+	}
+	
+	//////////////////////////////////////////////////////////
+	////------------------------------------------------------
+	////  XXX: Methods to keep track of current items,
+	////	   purchases, shipments. They can be compared 
+	////	   to user inputed itemCodes
+	////		- increaseItems
+	////		- increasePurchases
+	////		- increaseShipments
+	////		- getItemsCreated
+	////		- getPurchasesCreated
+	////		- getShipmentsCreated
+	////------------------------------------------------------
+	//////////////////////////////////////////////////////////
+
+	public void increaseItems() {
+		itemsCreated++;
+	}
+	
+	public void increasePurchases() {
+		purchCreated++;
+	}
+	
+	public void increaseShipments() {
+		shipmCreated++;
+	}
+	
+	public int getItemsCreated() {
+		return itemsCreated++;
+	}
+	
+	public int getPurchasesCreated() {
+		return purchCreated;
+	}
+	
+	public int getShipmentsCreated() {
+		return shipmCreated;
+	}
+	
+	//////////////////////////////////////////////////////////
+	////------------------------------------------------------
+	////  XXX: Extra Methods
+	////		- makeConnection
+	////		- printUsage
+	////		
+	////------------------------------------------------------
+	//////////////////////////////////////////////////////////
+	
+	/**
+	 * Creates a connection to MySQL Workbench on the Boise State onyx server
+	 * @return Connection
+	 */
+	public static Connection makeConnection() {
+		try {
+			Connection conn = null;
+			conn = DriverManager.getConnection(
+					"jdbc:mysql://localhost:5902/fp?verifyServerCertificate=false&useSSL=true", "msandbox",
+					"adminpass");
+			// Do something with the Connection
+			System.out.println("Database [test db] connection succeeded!");
+			System.out.println();
+			return conn;
+		} catch (SQLException ex) {
+			// handle any errors
+			System.err.println("SQLException: " + ex.getMessage());
+			System.err.println("SQLState: " + ex.getSQLState());
+			System.err.println("VendorError: " + ex.getErrorCode());
+		}
+		return null;
+	}
+	
+	/**
+	 * Prints command line usage for the program to work
+	 */
+	public static void printUsage() {
+		String str = "Command Line Usage:\n"
+				+    "Valid date format is yyyy-MM-dd\n";
+			str +=   "java project /?\n"
+				+    "java project CreateItem <itemCode> <itemDescription> <price>\n"
+				+    "java project CreatePurchase <itemCode> <PurchaseQuantity>\n"
+				+    "java project CreateShipment <itemCode> <ShipmentQuantity> <shipmentDate>\n"
+				+ 	 "java project GetItems <itemCode>\n"
+				+ 	 "java project GetShipments <itemCode>\n"
+				+ 	 "java project GetPurchases <itemCode>\n"
+				+ 	 "java project ItemsAvailable <itemCode>\n"
+				+ 	 "java project UpdateItem <itemCode> <price>\n"
+				+ 	 "java project DeleteItem <itemCode>\n"
+				+ 	 "java project DeleteShipment <itemCode>\n"
+				+ 	 "java project DeletePurchase <itemCode>";
+		System.out.println(str);
+	}	
+	
+}
+
+		

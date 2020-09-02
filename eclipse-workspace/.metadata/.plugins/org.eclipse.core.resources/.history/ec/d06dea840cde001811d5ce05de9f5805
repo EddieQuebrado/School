@@ -1,0 +1,13 @@
+
+public class Driver {
+	public static void main(String[] args) {
+		IUDoubleLinkedList<String> dll = new IUDoubleLinkedList<String>();
+		dll.add("String");
+		dll.add("String");
+		dll.listIterator().set("Here");
+		if(dll.contains("here")){
+			System.out.println("We made it here");
+		}
+
+	}
+}

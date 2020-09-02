@@ -1,0 +1,21 @@
+
+public class WhileLoops 
+{
+
+	public static void main(String[] args) 
+	{
+		// TODO Auto-generated method stub
+
+		int count = 0;
+		
+		while(count <= 10)
+		{
+			if(count % 2 == 5)
+			{
+				System.out.print(count);
+			}
+			count++;
+		}
+	}
+
+}

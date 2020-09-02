@@ -1,0 +1,31 @@
+import java.util.Iterator;
+
+public class TreeObject {
+	private int frequency;
+	private long dna;
+	
+	public TreeObject(long dna) {
+		this.dna = dna;
+		frequency = 1;
+	}
+	
+	public void increaseFreq() {
+		frequency++;
+	}
+	
+	public long getDna() {
+		return dna;
+	}
+	
+	public void setData(long dna) {
+		this.dna = dna;
+	}
+	
+	public int getFreq() {
+		return frequency;
+	}
+	
+	public String toString() {
+		return "";
+	}
+}

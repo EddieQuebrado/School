@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename type &apos;SQLManager&apos; to &apos;project&apos;&#x0A;- Original project: &apos;ConnectSQL&apos;&#x0A;- Original element: &apos;SQLManager&apos;&#x0A;- Renamed element: &apos;project&apos;&#x0A;- Update references to refactored element&#x0A;- Update textual occurrences in comments and strings" description="Rename type &apos;SQLManager&apos;" flags="589830" id="org.eclipse.jdt.ui.rename.type" input="/&lt;{SQLManager.java[SQLManager" matchStrategy="1" name="project" qualified="false" references="true" similarDeclarations="false" stamp="1549937340215" textual="false" version="1.0"/>
+</session>

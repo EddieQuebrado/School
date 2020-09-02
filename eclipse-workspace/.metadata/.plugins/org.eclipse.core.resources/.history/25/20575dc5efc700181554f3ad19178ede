@@ -1,0 +1,162 @@
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.ListIterator;
+import java.util.NoSuchElementException;
+
+public class IUArrayList<T> implements IndexedUnsortedList<T> {
+	private T[] array;
+	private int rear;
+	private static int DEFAULT_SIZE = 10;
+	
+	public IUArrayList() {
+		this(DEFAULT_SIZE);
+	}
+	
+	@SuppressWarnings("unchecked")
+	public IUArrayList(int intialCapacity) {
+		array = (T[])(new Object[intialCapacity]);
+		rear = 0;
+	}
+	
+	private void arrayExpand() {
+		if(array.length == rear) {
+			array = Arrays.copyOf(array, array.length*2);
+		}
+	}
+	@Override
+	public void addToFront(T element) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void addToRear(T element) {
+		arrayExpand();
+		array[rear] = element;
+		rear++;
+	}
+
+	@Override
+	public void add(T element) {
+		addToRear(element);
+	}
+
+	@Override
+	public void addAfter(T element, T target) {
+		
+	}
+
+	@Override
+	public void add(int index, T element) {
+		arrayExpand();
+		array[index] = element;
+		rear++;
+	}
+
+	@Override
+	public T removeFirst() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public T removeLast() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public T remove(T element) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public T remove(int index) {
+		if(index < 0 || index >= size()) {
+			throw new IndexOutOfBoundsException();
+		}
+		for(int i = index; i < rear-1; i++) {
+			array[i] = array[i+1];
+		}
+		array[rear-1] = null;
+		rear--;
+		return array[index];
+	}
+
+	@Override
+	public void set(int index, T element) {
+		if(index < 0 || index >= size()) {
+			throw new IndexOutOfBoundsException();
+		}
+		array[index] = element;
+	}
+
+	@Override
+	public T get(int index) {
+		if(index < 0 || index >= size()) {
+			throw new IndexOutOfBoundsException();
+		}
+		return array[index];
+	}
+
+	@Override
+	public int indexOf(T element) {
+		for (int i = 0; i < array.length; i++) {
+			if (array[i] == element) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	@Override
+	public T first() {
+		if(isEmpty() == true) {
+			throw new NoSuchElementException();
+		}
+		return array[0];
+	}
+
+	@Override
+	public T last() {
+		if(isEmpty() == true) {
+			throw new NoSuchElementException();
+		}
+		return array[rear-1];
+	}
+
+	@Override
+	public boolean contains(T target) {
+		return false;
+	}
+
+	@Override
+	public boolean isEmpty() {
+		return (rear == 0);
+	}
+
+	@Override
+	public int size() {
+		return rear;
+	}
+
+	@Override
+	public Iterator<T> iterator() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ListIterator<T> listIterator() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ListIterator<T> listIterator(int startingIndex) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+}

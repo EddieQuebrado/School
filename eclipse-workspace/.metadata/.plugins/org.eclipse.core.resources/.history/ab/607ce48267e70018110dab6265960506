@@ -1,0 +1,18 @@
+import java.util.ListIterator;
+
+public class Driver {
+	public static void main(String[] args) {
+		System.out.println(factorial(2));
+	}
+	
+	private static int factorial(int integer) {
+		int result;
+		if(integer == 0) {
+			return 1;
+		} else {
+			result = integer * factorial(integer - 1);
+			return result;
+		}
+	}
+
+}

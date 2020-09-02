@@ -1,0 +1,153 @@
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+
+public class MineWalkerPanel extends JPanel
+{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private MineFieldPanel board;
+	private JButton newGameButton;
+	private JButton showMinesButton;
+	private JButton showPathButton;
+	private JTextField sizeTextField;
+	
+	/**
+	 * Creates a new LiteBrite GUI with specified width and height.
+	 * @param width The number of pegs in the horizontal axis.
+	 * @param height The number of pegs in the vertical axis.
+	 */
+	public MineWalkerPanel(int width, int height)
+	{
+		setLayout(new BorderLayout(10,10));
+		
+		board = new MineFieldPanel(new MineFieldListener(), width, height);
+		
+		// Create Score Panel (WEST)
+		JPanel scorePanel = new JPanel();
+		scorePanel.setLayout(new BoxLayout(scorePanel, BoxLayout.Y_AXIS));
+		scorePanel.setBorder(BorderFactory.createTitledBorder("ScorePanel"));
+		
+		JLabel lives = new JLabel("Lives: ");
+		JLabel score = new JLabel("Score: ");
+		
+		scorePanel.add(Box.createVerticalGlue());
+		scorePanel.add(lives);
+		scorePanel.add(score);
+		scorePanel.add(Box.createVerticalGlue());
+		scorePanel.add(Box.createHorizontalStrut(75));
+		
+		// Create Key Panel (EAST)
+		
+		JPanel keyPanel = new JPanel();
+		keyPanel.setLayout(new BoxLayout(keyPanel, BoxLayout.Y_AXIS));
+		keyPanel.setBorder(BorderFactory.createTitledBorder("Key Panel"));
+		
+		JPanel colorPanel = new JPanel();
+		colorPanel.setLayout(new BoxLayout(colorPanel, BoxLayout.Y_AXIS));
+		colorPanel.setBackground(MineFieldButton.COLORS[i]);
+		colorPanel.setPreferredSize(getPreferredSize());
+		
+		for(int i = 0; i < MineFieldButton.COLORS.length; i++)
+		{
+			JLabel key = new JLabel(i + " Nearby Mines");
+			key.setPreferredSize(getPreferredSize());
+			
+			colorPanel.add(key);
+			keyPanel.add(key);
+		}
+		
+		// Create Button Panel (SOUTH)
+		
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.setLayout(new FlowLayout());
+		
+		newGameButton = new JButton("New Game");
+		newGameButton.addActionListener(new NewGameButtonListener());
+		
+		showMinesButton = new JButton("Show Mines");
+		showMinesButton.addActionListener(new ShowMinesListener());
+		
+		showPathButton = new JButton("Show Path");
+		showPathButton.addActionListener(new ShowPathListener());
+		
+		sizeTextField = new JTextField("Enter New Grid Size");
+		sizeTextField.setMaximumSize(sizeTextField.getPreferredSize());
+		
+		buttonPanel.add(newGameButton);
+		buttonPanel.add(showMinesButton);
+		buttonPanel.add(showPathButton);
+		buttonPanel.add(sizeTextField);
+		
+		
+		this.add(board, BorderLayout.CENTER);
+		this.add(scorePanel, BorderLayout.WEST);
+		this.add(keyPanel, BorderLayout.EAST);
+		this.add(buttonPanel, BorderLayout.SOUTH);
+	}
+	
+	private class ShowMinesListener implements ActionListener
+	{
+		@Override
+		public void actionPerformed(ActionEvent e)
+		{			
+			System.out.println("Show mines clicked");
+			board.showMines();
+		}
+	}
+	
+	private class NewGameButtonListener implements ActionListener
+	{
+
+		@Override
+		public void actionPerformed(ActionEvent e) 
+		{
+			int size = Integer.parseInt(sizeTextField.getText());
+			
+			JOptionPane.showMessageDialog(null, "Creating new gride of size" + size);
+			
+			remove(board);
+			board = new MineFieldPanel(new MineFieldListener(), size, size);
+			add(board, BorderLayout.CENTER);
+			revalidate();
+			// reset score lives, reset mines, reset path.
+		}
+		
+	}
+	
+	private class ShowPathListener implements ActionListener
+	{
+
+		@Override
+		public void actionPerformed(ActionEvent e) 
+		{
+			System.out.println("Show Path");
+			board.showPath();
+		}
+	}
+	
+	private class MineFieldListener implements ActionListener
+	{
+
+		@Override
+		public void actionPerformed(ActionEvent e) 
+		{			
+			MineFieldButton clicked = (MineFieldButton)e.getSource();
+			System.out.println("clicked");
+		}
+		
+	}
+}

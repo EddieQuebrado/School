@@ -1,0 +1,54 @@
+import java.awt.Color;
+import java.awt.Dimension;
+
+import javax.swing.JButton;
+
+@SuppressWarnings("serial")
+public class LitePegButton extends JButton
+{
+	private int colorIndex;
+	
+	private final Color[] COLORS = {Color.BLACK, Color.RED,Color.GREEN,Color.BLUE,};
+	
+	/**
+	 * Creates a Lite Peg object setting index to zero.
+	 * @param The color you want the lite peg to be.
+	 */
+	public LitePegButton()
+	{		
+		colorIndex = 0;		
+		setPreferredSize(new Dimension(25,25));
+		setBackground(getColor());
+	}
+	
+	/**
+	 * Returns a color from an array.
+	 * @return Color
+	 */
+	public Color getColor()
+	{
+		return COLORS[colorIndex];
+	}
+	
+	/**
+	 * Returns peg to original color and returns coor index to 0.
+	 */
+	public void resetColor()
+	{
+		setBackground(Color.BLACK);
+		colorIndex = 0;
+	}
+	
+	/**
+	 * Changes peg color to next color index.
+	 */
+	public void changeColor()
+	{
+		setBackground(getColor());
+		colorIndex++;
+		if(colorIndex == 4) 
+		{
+			colorIndex = 1;
+		}
+	}
+}

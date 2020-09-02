@@ -1,0 +1,204 @@
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.lang.Character.Subset;
+import java.util.ArrayList;
+
+public class GeneBankCreateBTree {
+
+	private static final int MAXSEQUENCELENGTH = 31;
+	private static final int MAXDEBUGLEVEL = 1;
+
+	private static BTree btree;
+
+	private static PrintWriter fileWrite = null;
+
+	public static void main(String[] args) throws IOException {
+		// Verifying valid argument length
+		if (args.length < 4 || args.length > 6) {
+			printUsage();
+		}
+		// Cache
+		boolean useCache = false;
+		// Parsing argument to obtain whether cache will be used
+		try {
+			int c = Integer.parseInt(args[0]);
+			// Verifying whether cache will be used
+			if (c == 0) {
+				// Cache will not be used
+				useCache = false;
+			} else if (c == 1) {
+				// Cache will be used
+				useCache = true;
+			} else {
+				// If c is anything other than 0 or 1 go here
+				printUsage();
+			}
+		} catch (NumberFormatException e) {
+			printUsage();
+		}
+		// BTree optimal degree
+		int degree = 0;
+		// Parsing argument to obtain degree for BTree
+		try {
+			int deg = Integer.parseInt(args[1]);
+			// If degree is less than 0 print Usage
+			if (deg < 0) {
+				printUsage();
+			}
+			if (deg == 0) {
+				// If no degree specified optimal degree will be found for BTree
+				deg = findOptimalDegree();
+			} else {
+				// Setting value for the degree
+				degree = deg;
+			}
+		} catch (NumberFormatException e) {
+			printUsage();
+		}
+		// BTree sequence length
+		int sequenceLength = 0;
+		// Parsing argument to obtain sequence length
+		try {
+			int seq = Integer.parseInt(args[3]);
+			if (seq < 1 || seq > MAXSEQUENCELENGTH) {
+				printUsage();
+			} else {
+				sequenceLength = seq;
+			}
+		} catch (NumberFormatException e) {
+			printUsage();
+		}
+		// Cache size and Debug Level
+		int cacheSize = 0;
+		int debugLevel = 0;
+
+		// Parsing arguments to obtain cache size and debug level if
+		// either was specified by the user
+		if (args.length > 4) {
+			if (useCache) {
+				try {
+					int size = Integer.parseInt(args[4]);
+					if (size < 1) {
+						printUsage();
+					} else {
+						cacheSize = size;
+					}
+				} catch (NumberFormatException e) {
+					printUsage();
+				}
+			}
+			// If user did not use cache, or if argument length is greater than 5
+			if (!useCache || args.length > 5) {
+				try {
+					// Using ternary operator
+					// If useCache is true then debugLevel will be arg[5] else debugLevel will be
+					// arg[4]
+					int dLevel = Integer.parseInt(useCache ? args[5] : args[4]);
+
+					if (dLevel < 0 || dLevel > MAXDEBUGLEVEL) {
+						printUsage();
+					} else {
+						debugLevel = dLevel;
+					}
+				} catch (NumberFormatException e) {
+					printUsage();
+				}
+			}
+		}
+		// Filename
+		String fileName = args[2];
+		// Calling the helper class FileParser to parse the gbk file
+		ArrayList<String> listOfKeys = FileParser.getArrayListOfKeys(fileName, sequenceLength);
+
+		btree = new BTree(degree, sequenceLength);
+
+		for (String str : listOfKeys) {
+			Long longstr = Long.parseLong(toBinaryString(str), 2);
+			TreeObject treeObject = new TreeObject(longstr, sequenceLength);
+			btree.bTreeInsert(treeObject);
+		}
+
+		System.out.println("Successfully inserted all the dna sequences in the BTree!");
+
+		if (debugLevel == 1) {
+			String dumpFile = fileName + "." + sequenceLength + ".btree.dump";
+			fileWrite = new PrintWriter(dumpFile);
+			System.out.println("Root node:" + btree.readBTreeNode(btree.getLocationOfRoot()));
+			doInOrderTraversal(btree.readBTreeNode(btree.getLocationOfRoot()));
+			fileWrite.close(); 
+			System.out.println("Successfully wrote to the dump file!");
+		}
+	}
+
+	/**
+	 * Performs an inorder traversal of the BTree.
+	 * 
+	 * @param node : The BTreeNode from where the inorder traversal needs to be
+	 *             performed.
+	 */
+	public static void doInOrderTraversal(BTreeNode node) {
+		if (node.getIsLeaf() == 1) {
+			for (int i = 0; i < node.getNumKeys(); i++) {
+				fileWrite.write(node.getKey(i).toString());
+			}
+			return;
+		} else {
+			for (int j = 0; j < node.getNumKeys(); j++) {
+				if (j == 0) {
+					doInOrderTraversal(btree.readBTreeNode(node.getChildAtIndex(j)));
+				}
+				fileWrite.write(node.getKey(j).toString());
+				doInOrderTraversal(btree.readBTreeNode(node.getChildAtIndex(j + 1)));
+			}
+		}
+	}
+
+	/**
+	 * Converts the given dna string to it's binary representation.
+	 * 
+	 * @param string : The string that's to be converted to a binary string.
+	 * @return : Returns a string that contains 1's and 0's.
+	 */
+	public static String toBinaryString(String string) {
+		String binaryString = "";
+		for (int i = 0; i < string.length(); i++) {
+			if (string.charAt(i) == 'a') {
+				binaryString += "00";
+			} else if (string.charAt(i) == 't') {
+				binaryString += "11";
+			} else if (string.charAt(i) == 'c') {
+				binaryString += "01";
+			} else if (string.charAt(i) == 'g') {
+				binaryString += "10";
+			}
+		}
+		return binaryString;
+	}
+
+	/**
+	 * Prints program usage to console.
+	 */
+	public static void printUsage() {
+		System.err.println(
+				"Usage: java GeneBankCreateBTree <cache> <degree> <gbk file> <sequence length> [<cache size>] [<debug level>]");
+		System.err.println("<cache> 0/1 (no cache/ cache");
+		System.err.println("<degree>: Degree of the BTree");
+		System.err.println("<gbk file>: GeneBank file");
+		System.err.println("<sequence length>: 1 - 31");
+		System.err.println("<cache size>: (Optional) Size of Cache");
+		System.err.println("<debug level>: 0/1 (no/yes)");
+		System.exit(1);
+	}
+
+	/**
+	 * Calculates optimal degree if degree specified by the user is 0.
+	 * 
+	 * @return : Returns an integer value.
+	 */
+	public static int findOptimalDegree() {
+		// 12 + 16 (2t-1) + 4*2t <= 4096
+		// 40t - 4 <= 4096
+		// t = 4100 / 40
+		return (int) Math.floor(4100 / 40);
+	}
+}

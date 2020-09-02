@@ -1,0 +1,132 @@
+import java.io.BufferedReader;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.Scanner;
+
+//import com.sun.org.apache.xalan.internal.xsltc.dom.CurrentNodeListFilter;
+
+//java GeneBankSearch <0/1(no/with Cache)> <btree file> <query file> [<cache size>][<debug level>]
+
+public class GeneBankSearch{ 
+	
+	static boolean hasCache=false;
+	static int cacheSize=0;
+	static int debugLevel=0;
+	static int degree;
+	static int substringLength;
+	static int rootLocation;
+	
+	public static void main(String[] args) {
+		
+		//ARGUMENT PARSING, need to adjust a bit to handle incorrect args
+		
+		if (args.length < 4 || args.length > 6) {//if there is an incorrect number of arguments
+			printUsage();
+		}
+		
+		if (Integer.parseInt(args[0])==0 || Integer.parseInt(args[0])==1) {  //first argument, for cache
+			if (Integer.parseInt(args[0])==0) {
+				hasCache=false; //need to verify 0 is no cache
+			}
+			if (Integer.parseInt(args[0])==1) {
+				hasCache=true; //need to verify 1 is yes cache
+			}
+		}
+		
+		RandomAccessFile bFile=null;
+		RandomAccessFile readFile=null;
+		String filePath = "btree.bin";
+		degree=-1;
+		substringLength=-1;
+		rootLocation=-1;
+		try { //second argument, b-tree file	
+			bFile = new RandomAccessFile(args[1], "r");
+			readFile = new RandomAccessFile(filePath, "r");	
+			readFile.seek(0); //read metaData
+			degree=readFile.readInt();
+			substringLength=readFile.readInt();
+			rootLocation=readFile.readInt();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.out.println("Experienced an IOException.");
+		}
+		
+		File qFile = new File(args[2]); //third argument, query file name
+	
+		if (args.length > 3) {//fourth argument, cache size
+			cacheSize = Integer.parseInt(args[3]);	
+			if (args.length > 4) { //fifth argument, debug level
+				debugLevel = Integer.parseInt(args[4]); 
+			}
+		}
+		
+		//MAIN CODE:
+		Scanner qFileScanner;
+		try {  
+			qFileScanner = new Scanner(qFile);
+			readFile.seek(rootLocation); //Reading metadata about root node
+			int nodeOffset = readFile.readInt();
+			int isLeaf = readFile.readInt();
+			int parentOffset = readFile.readInt();
+			int numKeys = readFile.readInt();
+			BTreeNode rootNode = new BTreeNode(nodeOffset, degree, parentOffset); //setting root node
+			while (qFileScanner.hasNextLine()) { //What to do when query length is not the k chosen when creating btree??
+				String geneString = qFileScanner.nextLine(); //define geneString we are searching for
+				String toPrint = geneSearcher(rootNode,nodeOffset,parentOffset,numKeys,isLeaf);
+				if (toPrint == "NONEXISTENT") {
+					System.out.println("gene string "+geneString+" does not occur in the specified btree.");
+				}
+				else {
+					System.out.println(toPrint);
+				}
+			}
+		} catch (FileNotFoundException e) {
+			System.out.println("That is not a file. Please check your spelling and try again.");
+		} catch (IOException e) {
+			System.out.println("Experienced an IOException");
+		}
+		
+	}
+
+	private static String geneSearcher(BTreeNode rootNode, int nodeOffset, int parentOffset, int numKeys, int isLeaf) {
+		boolean isFound = false;
+		int middleIndex=-1; //TODO: Make this recursive with the middle search. Have written with comparison search for now
+		if(numKeys%2==0) { //if there is an even number of keys
+			middleIndex=numKeys/2;
+		}
+		else { //if there is an odd number of keys
+			middleIndex=(numKeys/2)-1;
+		}
+		//String currentKey = rootNode.getKey(middleIndex);
+		//Go to middle child's key, compare to geneString
+		
+		//if geneString is less than middle child's key, go left
+		//continue going left until I find a key that is smaller than geneString
+			//choose this position, grab child pointer
+		//if geneString is more than middle child's key, go right
+		//continue going right until I find a key that is bigger than geneString
+			//choose this position, grab child pointer
+		//if geneString is equal to key, we have found it
+			
+		if (rootNode.getIsLeaf()==1 &&isFound==false) { //if it is a leaf and we still have not found the geneString, it does not exist in the file
+			return "NONEXISTENT";
+		}
+		return null;		
+	}
+
+	private static void printUsage() {
+		System.err.println("Usage: java GeneBankSearch <cache> <gbk file> <query file> [<cache size>] [<debug level>]");
+		System.err.println("<cache> 0/1 (no cache/ cache");
+		System.err.println("<gbk file>: GeneBank file");
+		System.err.println("<query file>: Query file");
+		System.err.println("<sequence length>: 1 - 31");
+		System.err.println("<cache size>: (Optional) Size of Cache");
+		System.err.println("<debug level>: 0/1 (no/yes");
+		System.exit(1);
+	}
+}
