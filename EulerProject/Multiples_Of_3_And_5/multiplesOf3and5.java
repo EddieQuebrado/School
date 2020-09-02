@@ -1,7 +1,7 @@
 public class multiplesOf3and5 {
 	final static int LIMIT = 1000;
 
-	public static void main(String args[]) throws IOException {
+	public static void main(String args[]){
 		long result = solution(LIMIT);
 		System.out.println("The sum of multiples under " + LIMIT + ": " + result);
 	}
