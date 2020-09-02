@@ -1,0 +1,5 @@
+java CircuitTracer <-s or -q> <-c or -g> <filename>
+-s: storage type set to stack
+-q: storage type set to queue
+-c: set program to run in console
+-g: set program to run in GUI(unsupported)

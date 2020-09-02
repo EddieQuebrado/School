@@ -1,0 +1,143 @@
+****************
+* Project: Circuit Tracer
+* Class: CS 221-2
+* Date: 12/7/2018
+* Eddie Quebrado
+**************** 
+
+OVERVIEW:
+ 
+ Search for the shortest paths from start and end points on a circuit board.
+ Input is read from an input file and uses either a stack or a queue as the
+ storage structure then displays output to the console or GUI according to
+ the options via command-line arguments.
+
+
+INCLUDED FILES:
+
+ CircuitBoard.java - source file
+ CircuitTracer.java - source file
+ CircuitTracerTester.java - source file
+ InvalidFileFormatException.java - source file
+ OccupiedPositionException.java - source file
+ Storage.java - source file
+ TraceState.java - source file
+ invalid1.dat through invalid12.dat - text file
+ valid1.dat through valid10.dat 
+ README - this file
+
+
+COMPILING AND RUNNING:
+
+ To compile the program in the console enter:
+ [For CircuitTracer.java] $ javac CircuitTracer.java
+ [For CircuitTracerTester.java] $ javac CircuitTracerTester.java
+ 
+ To run the program in the console enter:
+ [For CircuitTracer.java] $ java CircuitTracer <-s or -q> <-c or -g> <filename>
+ [For CircuitTracerTester.java] $ java CircuitTracerTester
+ 
+ -s: storage type set to stack
+ -q: storage type set to queue
+ -c: set program to run in console
+ -g: set program to run in GUI(unsupported)
+ 
+ Console output will give the results after the program finishes.
+
+PROGRAM DESIGN AND IMPORTANT CONCEPTS:
+ 
+ In total their are 7 classes, 2 of the classes are used for handling 
+ exceptions these are the InvalidfFileFormatException.java and the
+ OccupiedPositionException.java, one class is a tester this is the
+ CircuitTracerTester.java and the rest are used to make the program run.
+ 
+ The Storage.java class holds TraceState.java objects TraceState.java objects
+ which represent a search state and potential path through the circuit board.
+ The CircuitBoard.java class takes in an input file and checks whether or not
+ it is a valid board and if it is creates a starting point and ending point
+ via the location of a '1' and a '2' on the board. The CircuitTracer.java
+ class then takes the boards starting position and creates a new trace state
+ then this new state gets put through a searching algorithm until the state's
+ current position is adjacent to the ending point after which it gets stored into
+ best paths if it is the shortest path to the ending point. 
+ 
+ I was not the one who organized how the program's classes work together
+ I only finished the CircuitBoard.java and CircuitTracer.java classes.
+ 
+ Future enhancements could possible be made to CircuitBoard.java this
+ class was readily made but still works.
+
+TESTING:
+ 
+ My program went through three series of test, before we finished the
+ circuit tracer we had to create a circuit board that could handle any
+ exception thrown at it. After that we then had to parse command-line
+ arguments after handling incorrect inputs a message will be outputted
+ to the console explaining how to correctly use the command-line arguments.
+ The last tests the program had to pass were whether or not the circuit
+ tracer outputted the correct best paths. 
+
+
+DISCUSSION:
+ 
+ Overall I didn't really encounter hard problems until I had to create the
+ circuit tracer search algorithm. The problem I encountered was keeping
+ track of adjacent points to the current position on the circuit board. To
+ fix this I created an adjacentPoints(Point point) that takes in a point
+ and stores adjacent points in an arraylist if the adjacent point is open
+ then returns the arraylist of adjacent points to the circuit tracer. The
+ points are then ran through a for-each loop and new trace states are made
+ out of those adjacent points.
+ 
+ ANALYSIS:
+
+ How does the choice of Storage configuration (stack vs queue) affect the sequence in which paths are explored in the search algorithm? 
+ This requires more than a "stacks are LIFOs and queues are FIFOs" answer.)
+ 
+ The search algorithm works in that each circuit board state up to solution state has a 
+ child state, each child state could then have their own children just like a tree. 
+ The stack navigates the tree by going through branches of one child until it reaches 
+ a point where the state is complete or there are no more open positions it then 
+ navigates all back up branches until every state is found for the original parent state.
+ 
+ The way the queue searches for states is different rather than searching the way a stack does
+ a queue searches in levels in the tree each level of the tree is determined by the number of traces
+ there are on the circuit board state itself, each trace is represented by a 'T'.  
+ 
+ Is the total number of search states (possible paths) affected by the choice of stack or queue?
+ 
+ The total number of search states are not affected by the stack or queue, the stack and queue
+ are just data structures that store objects or in this case trace states.
+ 
+ How is memory use (the maximum number of states in Storage at one time) affected by the choice of underlying structure?
+ 
+ When it comes to the number of states in Storage at one time I believe that the queue will hold more
+ trace states due to the way that it searches for possible paths so there is more memory use coming
+ from the queue than the stack.
+ 
+ What is the Big-Oh runtime for the search algorithm? Does it reflect the maximum size of Storage? Does 
+ it reflect the number of board posisions? Does it reflect the number of paths explored? Does it reflect 
+ the maximum path length? Is it something else?
+ 
+ The Big-Oh runtime for the search algorithm for my program is a O(n^3) because I have a method within
+ the circuit board that gets called in the searching algorithm and this method contains a nested for-loop.
+ 
+ Does using one of the storage structures usually find a solution in fewer steps than the other? Always?
+ Using the stack will usually find a solution in fewer steps than the queue.
+ 
+ Does using either of the storage structures guarantee that the first solution found will be a shortest path?
+ Using the queue will guarantee that the first solution found will be the shortest path because like I
+ explained the queue will search at various levels in the tree, once a solution is found it's then stored
+ in the bestPaths arraylist because no other paths after the level will be shorter.
+
+ EXTRA CREDIT:
+ 
+ Not attempted.
+
+----------------------------------------------------------------------------
+
+All content in a README file is expected to be written in clear English with
+proper grammar, spelling, and punctuation. If you are not a strong writer,
+be sure to get someone else to help you with proofreading. Consider all project
+documentation to be professional writing for your boss and/or potential
+customers.

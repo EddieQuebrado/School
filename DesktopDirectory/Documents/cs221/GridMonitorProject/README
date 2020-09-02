@@ -1,0 +1,108 @@
+****************
+* GridMonitor Project
+* CS-221-2
+* 8-27-2018
+* Eddie Quebrado
+**************** 
+
+OVERVIEW:
+
+ The program outputs useful data on the condition of the solar
+ arrays on the Constitution-class starship to avoid any
+ unnecessary explosions.
+
+
+INCLUDED FILES:
+
+ List the files required for the project with a brief
+ explanation of why each is included.
+ 
+ * GridDriver.java - source file
+ * GridMonitor.java - source file
+ * GridMonitorInterface - source file
+ * GridMonitorTest.java - source file
+ * README
+ * sample.txt - text file
+ * sample4x5.txt - text file
+ * sampleDoubles.txt - text file
+ * negatives.txt - text file
+ * oneByOne.txt - text file
+ * wideRange.txt - text file
+
+
+COMPILING AND RUNNING:
+
+ To compile and run use Onyx or similar products.
+ In directory containing the source files for the program, 
+ compile the GridDriver class with the following command:
+ 
+ $ javac GridDriver.java
+ 
+ After the compiling has completed the class will call for
+ the text file names as a command line argument, this is required
+ to properly run the program. 
+ Here is a list of text files to choose from:
+ * sample.txt
+ * sample4x5.txt
+ * sampleDoubles.txt
+ * negatives.txt
+ * oneByOne.txt
+ * wideRange.txt
+ The command to run the class will look like this:
+ 
+ $ java GridDriver [text file]
+
+ The console will then output the solar array data for the specified
+ text file.
+
+
+PROGRAM DESIGN AND IMPORTANT CONCEPTS:
+
+ Concepts covered in my program involved implementing an interface thereby 
+ inheriting the properties and methods of the interface. I opened then 
+ read data from files, stored the data in two-dimensional arrays, which I later 
+ would manipulate the data in two-dimensional arrays to output useful information
+ to the user. I also maintained encapsulation in order to protect the data and behavior
+ of my objects from be misused.  
+ 
+ I made a design choice which helped out in creating my toString() method.
+ When creating my grids I noticed I would have needed to create five nested
+ loops for each of my 2-d arrays, which included baseGrid[][], 
+ surroundingSumGrid[][], surroundingAvgGrid[][], deltaGrid[][], and
+ dangerGrid[][]. So to make the work easier I created a method called
+ setGrid() which takes in a two-dimensional double array and returns the
+ data as a grid appended to a string. I used this to make the work easier on myself.
+
+TESTING:
+
+ To test my program I used the GridMonitorTest class. I also did some
+ tests on my own entering text files with mixed rational numbers.
+ As of right now I don't know of any bugs in my program.
+
+
+DISCUSSION:
+ 
+ I encountered only a few issues particularly when creating the
+ accessor getSurroundingSumGrid(). The main issue I encountered was 
+ handling cases when an element is on the border of the grid. Through
+ some research and overviewing previous programs, I found that I could
+ iterate through a nested for loop and handle each surrounding sum
+ in separate conditional statements.
+ 
+ Another issue I encountered was small. I kept failing the FileNotFoundException
+ test in the GridMonitorTest. My problem was I used a try-catch statement in
+ my constructor when I had already thrown a FileNotFoundException in my 
+ constructor signature. So I omitted the try-catch statement and I passed the
+ final part of the test.
+ 
+EXTRA CREDIT:
+n/a
+
+
+----------------------------------------------------------------------------
+
+All content in a README file is expected to be written in clear English with
+proper grammar, spelling, and punctuation. If you are not a strong writer,
+be sure to get someone else to help you with proofreading. Consider all project
+documentation to be professional writing for your boss and/or potential
+customers.

@@ -1,0 +1,4 @@
+InvalidFileFormatException: A character is not validinvalid5.dat
+	at CircuitBoard.<init>(CircuitBoard.java:77)
+	at CircuitTracer.<init>(CircuitTracer.java:60)
+	at CircuitTracer.main(CircuitTracer.java:30)

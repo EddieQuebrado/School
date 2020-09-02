@@ -1,0 +1,113 @@
+****************
+* Project: DoubleLinkedList
+* Class: CS-221-2
+* Date: November 13, 2018
+* Name: Eddie Quebrado
+**************** 
+
+OVERVIEW:
+ 
+ Creates a double linked list that consists of a set of
+ sequentially linked nodes. Each node contains references
+ to the previous and to the next node in the sequence of
+ node.
+
+
+INCLUDED FILES:
+
+ * ListTester.java - source file
+ * IUDoubleLinkedList.java - source file
+ * IndexedUnsortedList.java - source file
+ * Node.java - source file
+ * README - this file
+
+
+COMPILING AND RUNNING:
+ 
+ Inside the directory which contains the source files,
+ to compile the driver class use this command:
+ (Onyx was used)
+ $ javac ListTester.java
+
+ After the file was compiled run the program with this
+ command:
+ $ java ListTester
+
+ The console will output the test results for the
+ double linked list.
+
+
+PROGRAM DESIGN AND IMPORTANT CONCEPTS:
+ 
+ Througout the process of creating the double linked list I had to maintain
+ encapsulation throughout. Encapsulation refers to data bundle with methods
+ that can operate that data. It is used to hide values or state of the data
+ within the class to prevent others without the authorization to manipulate
+ the source code. I used getters and setters methods to access values to
+ retrieve and modify the data within the class.
+ 
+ To create the double linked list I had to use multiple class. First I 
+ had to implement the IndexedUnsortedList in order to have the proper
+ methods to modify the data. The other class I had to use was a Node class
+ this allowed me to navigate throughout the list forwards and backwards,
+ also this class allowed me to set current points to a new desired object
+ and retrieve data from current points.
+ 
+ I designed the program to be used by anyone who would like to use a 
+ double linked list. Methods included, addToFront() or add() which would add
+ a new element to the front of the list, addToRear() which will add an element
+ to the end of the list, addAfter() which will add an element after the first
+ occurence of a target element. Remove methods include removeFirst() which 
+ will remove an element from the front of the list, removeLast() which will
+ remove an element from the end of the list, remove(index) which will remove
+ an element at a desired index, and remove(element) which will remove the
+ first occurence of the desired element. These are the more important methods
+ of the main class their are other methods, but they clearly describe what
+ they are supposed to do.
+ 
+ The double linked list's iterator has methods that allow a user to
+ navigate throughout the list in an efficient manner while keeping
+ track of the last node returned and the node that you are currently on.
+ 
+ Future enhancements can be made to the list iterator for sure, specifically
+ the remove() method as I feel that the way I created it was less efficient
+ in removing elements.
+
+TESTING:
+
+ To test my double linked list I ran the list through a testing
+ class which included 10,389 tests. Both the list Iterator and
+ main methods were tested in the class. Multiple change scenarios
+ were also tested.
+
+
+DISCUSSION:
+ 
+ I encountered many issues when creating the double linked list there
+ was a lot of room for error. For instance, before I created my addAfter()
+ with the list iterator I had originally created the addAfter() calling
+ my add() method. The addAfter() method adds an element after a target
+ index, but I was adding at the target index rather than after I found this
+ out and changed the location at which an element was being added and this
+ issue was fixed.
+ 
+ Another issue was a conceptual issue. Originally I did not understand how
+ the list iterator previous() method had worked. I had thought that the
+ the last node reference was always supposed to be before the current node
+ reference. But now I understand that the last node reference is used to
+ figure out whether or not previous() or next() methods in the list
+ iterator were called, this happens by storing the reference of the last 
+ location we were at in the list and this is kept track of throughout the
+ program.
+ 
+ The most challenging part was list iterator this part was hard because
+ it was tough to conceptualize what was going on. Now that I understand 
+ the list iterator and what it's supposed to do, I figured I could then 
+ use it to create some main methods in my double linked list.
+ 
+ 
+EXTRA CREDIT:
+
+ N/A
+ 
+----------------------------------------------------------------------------

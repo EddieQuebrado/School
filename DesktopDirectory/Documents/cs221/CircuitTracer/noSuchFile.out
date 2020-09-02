@@ -1,0 +1,4 @@
+File not found: noSuchFile
+java.lang.NullPointerException
+	at CircuitTracer.<init>(CircuitTracer.java:84)
+	at CircuitTracer.main(CircuitTracer.java:30)

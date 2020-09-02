@@ -1,0 +1,9 @@
+InvalidFileFormatException: 
+--------------------------------------------
+Invalid starting point(s) or ending point(s)
+to fix issue remove/add starting point or
+ending point: file with issue -> invalid2.dat
+--------------------------------------------
+	at CircuitBoard.<init>(CircuitBoard.java:100)
+	at CircuitTracer.<init>(CircuitTracer.java:60)
+	at CircuitTracer.main(CircuitTracer.java:30)

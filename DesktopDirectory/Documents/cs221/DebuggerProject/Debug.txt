@@ -1,0 +1,32 @@
+Name: Eddie Quebrado
+Class: CS221-2
+Date: 9/5/2018
+--------------------
+Bug 1:
+--------------------
+The first test to fail was emptySet_testIsEmpty in the "new empty set" scenario.
+I placed a breakpoint at this point and located the bug to be in the isEmpty() method.
+In order to fix the issue I created a conditional if-else statement which will return
+true only if the size of the array is less than zero, else it would return false if
+the size of the array is greater than zero.
+--------------------
+Bug 2:
+--------------------
+The second test to fail occurred in the scenario where an element is added to an
+empty set. Specifically the test that failed, and placed a breakpoint at, was the
+emptySet_addA_A_testIsEmpty. After I found the general location of the bug I then
+used my debugger tool and located the actual location of the bug to be in the 
+ArraySet class at the add() method. The problem occurred because after adding
+an element to the set there wasn't a statement which increased the size of the set. 
+This step is crucial as it primes the set for another element.
+--------------------
+Bug 3:
+--------------------
+The third test to fail was in the scenario where the element 'B' was added to set
+populated by the element 'A'. When trying to remove A an ArrayIndexOutOfBoundsException
+was thrown causing it to fail. I placed a breakpoint and located the bug to be in the 
+remove() method of the ArraySet class. The bug occurred when the method tried to shift 
+an element one space forward, but the statement didn't account for when it was in the
+last index trying to reference an imaginary element in the next index. I fixed this
+by changing the conditional statement from "while(i < rear)" to "while(i < rear - 1)"
+this fixed all the issues and every test passed.

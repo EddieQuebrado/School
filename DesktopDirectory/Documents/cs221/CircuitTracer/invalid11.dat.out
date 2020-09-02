@@ -1,0 +1,4 @@
+InvalidFileFormatException: Grid does not match grid dimensions: invalid11.dat
+	at CircuitBoard.<init>(CircuitBoard.java:90)
+	at CircuitTracer.<init>(CircuitTracer.java:60)
+	at CircuitTracer.main(CircuitTracer.java:30)

@@ -1,0 +1,21 @@
+From a9526853665426e6ee82e91dbb31b124714399e6 Mon Sep 17 00:00:00 2001
+From: Devan Craig <DevanCraig@u.boisestate.edu>
+Date: Sun, 29 Sep 2019 20:41:40 -0600
+Subject: [PATCH] Workflow practice
+
+---
+ backpack/CS-HU250-x-f19/workflow-practice/devancraig.txt | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 backpack/CS-HU250-x-f19/workflow-practice/devancraig.txt
+
+diff --git a/backpack/CS-HU250-x-f19/workflow-practice/devancraig.txt b/backpack/CS-HU250-x-f19/workflow-practice/devancraig.txt
+new file mode 100644
+index 0000000..0e1031d
+--- /dev/null
++++ b/backpack/CS-HU250-x-f19/workflow-practice/devancraig.txt
+@@ -0,0 +1 @@
++Let's go patriots!!
+\ No newline at end of file
+-- 
+2.23.0
+
