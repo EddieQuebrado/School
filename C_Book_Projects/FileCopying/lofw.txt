@@ -1,0 +1,12 @@
+hello
+yellow
+orange
+blue
+green
+red
+azul
+rojo
+mellow
+acapella
+function
+length
